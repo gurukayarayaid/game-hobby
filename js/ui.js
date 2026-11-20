@@ -248,6 +248,7 @@
       badge.className = 'opt-num';
       badge.textContent = LETTERS[index] || '';
       el.appendChild(badge);
+      let textEl = null;
       const value = question.options[index].value;
       if (question.optionMode === 'image') {
         const img = document.createElement('img');
@@ -256,15 +257,30 @@
         img.decoding = 'async';
         el.appendChild(img);
       } else {
-        const span = document.createElement('span');
-        span.className = 'opt-text' + (question.optionMode === 'clue' ? ' opt-clue' : '');
-        span.textContent = question.optionMode === 'clue'
+        textEl = document.createElement('span');
+        textEl.className = 'opt-text' + (question.optionMode === 'clue' ? ' opt-clue' : '');
+        textEl.textContent = question.optionMode === 'clue'
           ? AJ.hobbyClue(value)
           : AJ.hobbyLabel(value).toUpperCase();
-        el.appendChild(span);
+        el.appendChild(textEl);
       }
       this.get('options').appendChild(el);
+      if (textEl) this.fitOptionText(textEl);
       return el;
+    },
+
+    fitOptionText(span) {
+      if (!span || !span.clientWidth || !span.clientHeight) return;
+      span.style.fontSize = '';
+      const max = parseFloat(window.getComputedStyle(span).fontSize) || 24;
+      const min = 9;
+      let size = max;
+      for (let step = 0; step < 32; step++) {
+        span.style.fontSize = size + 'px';
+        if (span.scrollWidth <= span.clientWidth + 1 && span.scrollHeight <= span.clientHeight + 1) break;
+        size = Math.max(min, size - 0.5);
+      }
+      span.style.fontSize = size + 'px';
     },
 
     clearOptions() {
