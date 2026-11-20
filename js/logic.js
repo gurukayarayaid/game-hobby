@@ -1,8 +1,48 @@
 (function (global) {
   'use strict';
 
-  const AKSARA = ['ha', 'na', 'ca', 'ra', 'ka', 'da', 'ta', 'sa', 'wa', 'la', 'pa', 'ja', 'ya', 'nya', 'ga', 'nga', 'tha', 'dha', 'ma', 'ba'];
-  const ASSET_BASE = 'assets/aksara/';
+  const HOBBIES = [
+    'reading', 'swimming', 'painting', 'cycling', 'cooking',
+    'dancing', 'singing', 'gardening', 'fishing', 'hiking',
+    'sketching', 'sewing', 'jogging', 'yoga', 'chess',
+    'soccer', 'tennis', 'guitar', 'drums', 'camping',
+  ];
+
+  const HOBBY_INFO = {
+    reading: { label: 'Reading', clue: 'I read books and stories for fun.' },
+    swimming: { label: 'Swimming', clue: 'I move through the water using my arms and legs.' },
+    painting: { label: 'Painting', clue: 'I use colours and a brush to make a picture.' },
+    cycling: { label: 'Cycling', clue: 'I ride a bike in the park.' },
+    cooking: { label: 'Cooking', clue: 'I make tasty food in the kitchen.' },
+    dancing: { label: 'Dancing', clue: 'I move my body to music.' },
+    singing: { label: 'Singing', clue: 'I use my voice to make music.' },
+    gardening: { label: 'Gardening', clue: 'I grow flowers and plants.' },
+    fishing: { label: 'Fishing', clue: 'I catch fish with a rod by the water.' },
+    hiking: { label: 'Hiking', clue: 'I walk up hills and enjoy nature.' },
+    sketching: { label: 'Sketching', clue: 'I draw pictures with a pencil.' },
+    sewing: { label: 'Sewing', clue: 'I use a needle and thread to make clothes.' },
+    jogging: { label: 'Jogging', clue: 'I run slowly to keep fit.' },
+    yoga: { label: 'Yoga', clue: 'I stretch my body and breathe slowly.' },
+    chess: { label: 'Chess', clue: 'I play a board game with kings and queens.' },
+    soccer: { label: 'Soccer', clue: 'I kick a ball and try to score a goal.' },
+    tennis: { label: 'Tennis', clue: 'I hit a ball over the net with a racket.' },
+    guitar: { label: 'Guitar', clue: 'I play a musical instrument with strings.' },
+    drums: { label: 'Drums', clue: 'I keep the beat with sticks and drums.' },
+    camping: { label: 'Camping', clue: 'I sleep in a tent outdoors.' },
+  };
+
+  const ROUND_TYPES = ['imageToName', 'nameToImage', 'clueToImage', 'imageToClue'];
+
+  const ASSET_BASE = 'assets/hobbies/';
+  const ASSET_EXT = '.svg';
+
+  function hobbyLabel(id) {
+    return (HOBBY_INFO[id] || {}).label || String(id || '').toUpperCase();
+  }
+
+  function hobbyClue(id) {
+    return (HOBBY_INFO[id] || {}).clue || '';
+  }
 
   const LEVELS = {
     mudah: { optionCount: 3, speed: 0.05, sway: 0.04 },
@@ -49,15 +89,15 @@
   function createRound(cfg) {
     const level = LEVELS[cfg.level] ? cfg.level : DEFAULTS.level;
     const lvl = LEVELS[level];
-    const count = clamp(cfg.optionCount || lvl.optionCount, 2, AKSARA.length);
+    const count = clamp(cfg.optionCount || lvl.optionCount, 2, HOBBIES.length);
     const recent = (cfg.answers || []).slice(-4);
-    let pool = AKSARA.filter((a) => recent.indexOf(a) === -1);
-    if (pool.length < count) pool = shuffle(AKSARA);
+    let pool = HOBBIES.filter((h) => recent.indexOf(h) === -1);
+    if (pool.length < count) pool = shuffle(HOBBIES);
     const answer = pick(pool);
-    const others = shuffle(AKSARA.filter((a) => a !== answer));
+    const others = shuffle(HOBBIES.filter((h) => h !== answer));
     const distractors = others.slice(0, count - 1);
 
-    const allowed = cfg.allowedTypes && cfg.allowedTypes.length ? cfg.allowedTypes : ['img', 'text'];
+    const allowed = cfg.allowedTypes && cfg.allowedTypes.length ? cfg.allowedTypes : ROUND_TYPES;
     const history = cfg.types || [];
     let type = pick(allowed);
     if (history.length >= 2 && history[0] === history[1] && allowed.length > 1) {
@@ -70,7 +110,19 @@
       ...distractors.map((d) => ({ value: d, correct: false })),
     ]);
 
-    return { type, answer, options, level };
+    const prompt = {
+      imageToName: { mode: 'image', value: answer, text: hobbyLabel(answer), instruction: 'What hobby is this?' },
+      nameToImage: { mode: 'text', text: hobbyLabel(answer).toUpperCase(), instruction: 'Choose the correct picture' },
+      clueToImage: { mode: 'text', text: hobbyClue(answer), instruction: 'Read the clue. Choose the picture' },
+      imageToClue: { mode: 'image', value: answer, text: hobbyLabel(answer), instruction: 'Which sentence matches?' },
+    }[type] || {
+      mode: 'image', value: answer, text: hobbyLabel(answer), instruction: 'What hobby is this?',
+    };
+
+    const optionMode = type === 'nameToImage' || type === 'clueToImage' ? 'image'
+      : type === 'imageToClue' ? 'clue' : 'label';
+
+    return { type, answer, options, level, prompt, optionMode };
   }
 
   function scoreCorrect(timeFrac, streak) {
@@ -654,8 +706,13 @@
   }
 
   global.AJ = {
-    AKSARA,
+    HOBBIES,
+    HOBBY_INFO,
+    ROUND_TYPES,
     ASSET_BASE,
+    ASSET_EXT,
+    hobbyLabel,
+    hobbyClue,
     LEVELS,
     SCORE,
     DEFAULTS,

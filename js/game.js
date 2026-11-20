@@ -5,7 +5,7 @@
     { text: '3', dur: 800, snd: 'count' },
     { text: '2', dur: 800, snd: 'count' },
     { text: '1', dur: 800, snd: 'count' },
-    { text: 'LAWAN!', dur: 700, snd: 'go' },
+    { text: 'GO!', dur: 700, snd: 'go' },
   ];
 
   const Game = {
@@ -217,7 +217,7 @@
         const remain = Math.max(0, 1 - this.roundTime / this.timeLimit);
         UI.updateTimer(remain);
         if (this.roundTime >= this.timeLimit) {
-          this.endRound(0, 'Jawaban: ' + this.question.answer.toUpperCase());
+          this.endRound(0, 'Answer: ' + AJ.hobbyLabel(this.question.answer));
         }
         return;
       }
@@ -252,7 +252,7 @@
         UI.setOptionPos(o.el, o.curX, o.y);
       }
       if (!alive && this.state === 'playing') {
-        this.endRound(0, 'Jawaban: ' + this.question.answer.toUpperCase());
+        this.endRound(0, 'Answer: ' + AJ.hobbyLabel(this.question.answer));
       }
     },
 
@@ -340,7 +340,7 @@
         UI.fxFloat(a.left + o.curX + o.w / 2, a.top + o.y + o.h / 2, '+' + pts, false);
         UI.updateScores();
         Sfx.correct();
-        this.endRound(player, '+' + pts + ' poin • jawaban ' + o.value.toUpperCase());
+        this.endRound(player, '+' + pts + ' points • ' + AJ.hobbyLabel(o.value));
         return;
       }
 
@@ -361,12 +361,12 @@
       this.state = 'flash';
       this.flashT = 1900;
       if (winner && this.mode === '1p') {
-        UI.showFlash('JAWABAN BENAR!', sub, '');
+        UI.showFlash('CORRECT!', sub, '');
       } else if (winner) {
-        UI.showFlash(UI.names[winner] + ' MENANG RONDE!', sub, winner === 1 ? '' : 'p2');
+        UI.showFlash(UI.names[winner] + ' WINS THE ROUND!', sub, winner === 1 ? '' : 'p2');
       } else {
         Sfx.timeout();
-        UI.showFlash('Ronde Berakhir', sub, 'neutral');
+        UI.showFlash('Round Over', sub, 'neutral');
       }
     },
 

@@ -53,7 +53,7 @@ jobs:
       - name: Siapkan berkas situs
         run: |
           mkdir -p _site
-          cp -r index.html css js assets aksara_jawa _site/
+          cp -r index.html css js assets _site/
 
       - name: Konfigurasi Pages
         uses: actions/configure-pages@v5

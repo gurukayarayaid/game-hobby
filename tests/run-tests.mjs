@@ -228,7 +228,7 @@ console.log('== dwell ==');
 
 console.log('== createRound ==');
 {
-  let types = { img: 0, text: 0 };
+  const types = {};
   for (let i = 0; i < 1000; i++) {
     const r = AJ.createRound({ level: 'sedang' });
     eq(r.options.length, 4, 'sedang punya 4 opsi');
@@ -236,11 +236,32 @@ console.log('== createRound ==');
     ok(r.options.some((o) => o.correct && o.value === r.answer), 'jawaban ada di opsi');
     const vals = r.options.map((o) => o.value);
     eq(new Set(vals).size, vals.length, 'opsi unik');
-    ok(AJ.AKSARA.includes(r.answer), 'jawaban valid');
-    ok(r.type === 'img' || r.type === 'text', 'type valid');
-    types[r.type]++;
+    ok(AJ.HOBBIES.includes(r.answer), 'jawaban valid');
+    ok(AJ.hobbyLabel(r.answer) && AJ.hobbyClue(r.answer), 'label dan clue bahasa Inggris tersedia');
+    ok(AJ.ROUND_TYPES.includes(r.type), 'type valid');
+    ok(['image', 'text'].includes(r.prompt.mode), 'prompt mode valid');
+    ok(['image', 'label', 'clue'].includes(r.optionMode), 'option mode valid');
+    ok(!!r.prompt.instruction, 'instruksi soal tersedia');
+    types[r.type] = (types[r.type] || 0) + 1;
   }
-  ok(types.img > 200 && types.text > 200, `tipe campuran acak (img=${types.img}, text=${types.text})`);
+  for (const t of AJ.ROUND_TYPES) {
+    ok(types[t] > 100, `tipe ${t} muncul dalam putaran acak (${types[t] || 0})`);
+  }
+}
+{
+  const expectedModes = {
+    imageToName: 'label',
+    nameToImage: 'image',
+    clueToImage: 'image',
+    imageToClue: 'clue',
+  };
+  for (const [type, mode] of Object.entries(expectedModes)) {
+    const r = AJ.createRound({ level: 'mudah', allowedTypes: [type] });
+    eq(r.type, type, `tipe ${type} dipaksa`);
+    eq(r.optionMode, mode, `tipe ${type} memakai opsi ${mode}`);
+    const imagePrompt = type === 'imageToName' || type === 'imageToClue';
+    eq(r.prompt.mode, imagePrompt ? 'image' : 'text', `tipe ${type} memakai prompt yang tepat`);
+  }
 }
 {
   const typeHistory = [];

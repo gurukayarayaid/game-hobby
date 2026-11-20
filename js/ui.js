@@ -61,12 +61,11 @@
     buildBrand() {
       const box = this.get('brand-glyphs');
       if (!box || box.childElementCount) return;
-      const order = ['ha', 'na', 'ca', 'ra', 'ka', 'da', 'ta', 'sa', 'wa', 'la', 'pa', 'ja', 'ya', 'nya', 'ga', 'nga', 'tha', 'dha', 'ma', 'ba'];
       const frag = document.createDocumentFragment();
-      for (const name of order) {
+      for (const name of AJ.HOBBIES) {
         const img = document.createElement('img');
-        img.src = AJ.ASSET_BASE + name + '.png';
-        img.alt = name;
+        img.src = AJ.ASSET_BASE + name + AJ.ASSET_EXT;
+        img.alt = AJ.hobbyLabel(name);
         frag.appendChild(img);
       }
       box.appendChild(frag);
@@ -224,14 +223,20 @@
       const hint = this.get('q-hint');
       if (roundEl) roundEl.textContent = String(roundNo);
       if (!main || !hint) return;
-      if (q.type === 'img') {
-        main.innerHTML = '';
-        main.textContent = q.answer.toUpperCase();
-        hint.innerHTML = 'Pilih <b>gambar aksara</b> yang berbunyi seperti ini';
+      const p = q.prompt || { mode: 'image', value: q.answer, instruction: 'What hobby is this?' };
+      main.innerHTML = '';
+      main.className = 'q-main';
+      if (p.mode === 'image') {
+        main.classList.add('q-image');
+        const img = document.createElement('img');
+        img.src = AJ.ASSET_BASE + p.value + AJ.ASSET_EXT;
+        img.alt = 'hobby';
+        main.appendChild(img);
       } else {
-        main.innerHTML = '<img src="' + AJ.ASSET_BASE + q.answer + '.png" alt="aksara">';
-        hint.innerHTML = 'Aksara ini berbunyi apa? Pilih <b>namanya</b>';
+        main.classList.add(q.type === 'clueToImage' ? 'q-clue' : 'q-label');
+        main.textContent = p.text;
       }
+      hint.textContent = p.instruction || 'Choose the correct answer';
     },
 
     createOption(question, index, size) {
@@ -243,16 +248,19 @@
       badge.className = 'opt-num';
       badge.textContent = LETTERS[index] || '';
       el.appendChild(badge);
-      if (question.type === 'img') {
+      const value = question.options[index].value;
+      if (question.optionMode === 'image') {
         const img = document.createElement('img');
-        img.src = AJ.ASSET_BASE + question.options[index].value + '.png';
-        img.alt = question.options[index].value;
+        img.src = AJ.ASSET_BASE + value + AJ.ASSET_EXT;
+        img.alt = AJ.hobbyLabel(value);
         img.decoding = 'async';
         el.appendChild(img);
       } else {
         const span = document.createElement('span');
-        span.className = 'opt-text';
-        span.textContent = question.options[index].value.toUpperCase();
+        span.className = 'opt-text' + (question.optionMode === 'clue' ? ' opt-clue' : '');
+        span.textContent = question.optionMode === 'clue'
+          ? AJ.hobbyClue(value)
+          : AJ.hobbyLabel(value).toUpperCase();
         el.appendChild(span);
       }
       this.get('options').appendChild(el);
@@ -289,8 +297,8 @@
       if (s2) s2.textContent = String(g.scores[2]);
       const w1 = this.get('sb-win-1');
       const w2 = this.get('sb-win-2');
-      if (w1) w1.textContent = g.wins[1] + ' menang';
-      if (w2) w2.textContent = g.wins[2] + ' menang';
+      if (w1) w1.textContent = g.wins[1] + ' wins';
+      if (w2) w2.textContent = g.wins[2] + ' wins';
     },
 
     updateRound(now, total) {
@@ -389,8 +397,8 @@
       };
       set('fs-score-1', String(result.s1));
       set('fs-score-2', String(result.s2));
-      set('fs-win-1', result.wins[1] + ' ronde menang');
-      set('fs-win-2', result.wins[2] + ' ronde menang');
+      set('fs-win-1', result.wins[1] + ' rounds won');
+      set('fs-win-2', result.wins[2] + ' rounds won');
       const f1 = document.querySelector('.final-scores .fs.s1');
       const f2 = document.querySelector('.final-scores .fs.s2');
       const title = this.get('final-title');
@@ -400,19 +408,19 @@
       const solo = !!(game && game.mode === '1p');
       if (solo) {
         const good = result.wins[1] * 2 >= (game.totalRounds || 1);
-        if (title) title.textContent = good ? 'HEBAT!' : 'SELESAI!';
+        if (title) title.textContent = good ? 'GREAT JOB!' : 'FINISHED!';
         if (trophy) trophy.textContent = '🏆';
         if (f1 && result.wins[1] > 0) f1.classList.add('win');
       } else if (result.winner === 1) {
-        if (title) title.textContent = this.names[1] + ' Menang!';
+        if (title) title.textContent = this.names[1] + ' Wins!';
         if (trophy) trophy.textContent = '🏆';
         if (f1) f1.classList.add('win');
       } else if (result.winner === 2) {
-        if (title) title.textContent = this.names[2] + ' Menang!';
+        if (title) title.textContent = this.names[2] + ' Wins!';
         if (trophy) trophy.textContent = '🏆';
         if (f2) f2.classList.add('win');
       } else {
-        if (title) title.textContent = 'Seri!';
+        if (title) title.textContent = 'It’s a Draw!';
         if (trophy) trophy.textContent = '🤝';
       }
       this.show('screen-final');
