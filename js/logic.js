@@ -34,7 +34,7 @@
   const ROUND_TYPES = ['imageToName', 'nameToImage', 'clueToImage', 'imageToClue'];
 
   const ASSET_BASE = 'assets/hobbies/';
-  const ASSET_EXT = '.svg';
+  const ASSET_EXT = '.jpg';
 
   function hobbyLabel(id) {
     return (HOBBY_INFO[id] || {}).label || String(id || '').toUpperCase();
